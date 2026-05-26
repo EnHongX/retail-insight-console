@@ -1,0 +1,17 @@
+{
+  "name": "retail-insight-console",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.12.4",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @retail-insight/web dev",
+    "dev:api": "pnpm --filter @retail-insight/api start:dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "db:generate": "pnpm --filter @retail-insight/api prisma:generate",
+    "db:validate": "pnpm --filter @retail-insight/api prisma:validate"
+  }
+}
