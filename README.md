@@ -72,6 +72,9 @@ API 健康检查地址为 `http://localhost:7102/health`。由于后端在启动
 - `GET /products/top-selling?period=7d&limit=5`
 - `GET /refunds/summary?period=7d`
 - `GET /dashboard/filters`
+- `GET /orders?period=7d&page=1&pageSize=10`
+- `GET /refunds?period=7d&page=1&pageSize=10`
+- `PATCH /refunds/:id/status`
 
 查询参数：
 
@@ -87,6 +90,8 @@ API 健康检查地址为 `http://localhost:7102/health`。由于后端在启动
 - 订单、GMV、商品排行按 `orders.placedAt` 统计。
 - 已完成退款金额和退款率按 `refunds.completedAt` 统计。
 - 商品排行只统计 `PAID`、`SHIPPED`、`COMPLETED` 订单。
+- 订单明细 Drilldown 继承 Dashboard 筛选条件，并支持点击趋势日期后按单日查询。
+- 退款处理工作台使用状态机：`REQUESTED -> APPROVED/REJECTED`，`APPROVED -> COMPLETED/REJECTED`，终态不可继续流转。
 
 Seed 数据覆盖近 30 天，包含多平台、多分类、取消订单、待支付订单、跨日完成退款、待处理退款和拒绝退款，便于复现筛选和边界场景。
 

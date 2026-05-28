@@ -231,6 +231,15 @@ input {
   gap: 8px;
   min-width: 30px;
   height: 240px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.trend-bar-wrap.selected .trend-bar {
+  outline: 3px solid #b45309;
+  outline-offset: 2px;
 }
 
 .trend-bar {
@@ -319,6 +328,121 @@ input {
   font-size: 14px;
 }
 
+.detail-grid {
+  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+}
+
+.order-list,
+.refund-list {
+  display: grid;
+  gap: 12px;
+}
+
+.order-row,
+.refund-row {
+  border: 1px solid #e3ebe8;
+  border-radius: 8px;
+  background: #fbfcfb;
+}
+
+.order-summary {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 120px 110px 110px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #1f2933;
+  cursor: pointer;
+  padding: 14px;
+  text-align: left;
+}
+
+.order-summary span,
+.refund-row > div:first-child,
+.order-item span:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.order-summary small,
+.refund-row small,
+.order-item small {
+  color: #71817c;
+  font-size: 12px;
+}
+
+.status-pill {
+  justify-self: start;
+  border-radius: 999px;
+  background: #e8f0ee;
+  color: #24453f;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 8px;
+}
+
+.order-items {
+  display: grid;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+
+.order-item {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) 50px 100px 80px;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.refund-row {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.refund-row-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.refund-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.refund-actions button,
+.pager button {
+  border: 1px solid #cbd6d2;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #24453f;
+  cursor: pointer;
+  padding: 8px 10px;
+}
+
+.refund-actions button:disabled,
+.pager button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  color: #63716d;
+  font-size: 13px;
+  padding-top: 4px;
+}
+
 @media (max-width: 900px) {
   .topbar {
     align-items: stretch;
@@ -332,8 +456,14 @@ input {
 
   .kpi-grid,
   .content-grid,
+  .detail-grid,
   .filter-panel,
   .refund-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .order-summary,
+  .order-item {
     grid-template-columns: 1fr;
   }
 

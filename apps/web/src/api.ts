@@ -60,6 +60,80 @@ export type RefundSummaryResponse = {
   refundRate: number;
 };
 
+export type OrderListItem = {
+  id: string;
+  orderNo: string;
+  platform: string;
+  placedAt: string;
+  status: string;
+  grossAmount: number;
+  discountAmount: number;
+  netAmount: number;
+  customerRegion: string | null;
+  items: Array<{
+    id: string;
+    quantity: number;
+    unitPrice: number;
+    discountAmount: number;
+    grossAmount: number;
+    netAmount: number;
+    product: {
+      sku: string;
+      name: string;
+      category: string;
+    };
+    refunds: Array<{
+      refundNo: string;
+      status: string;
+      amount: number;
+    }>;
+  }>;
+  refunds: Array<{
+    id: string;
+    refundNo: string;
+    status: string;
+    amount: number;
+    requestedAt: string;
+    completedAt: string | null;
+    reason: string;
+  }>;
+};
+
+export type OrdersResponse = {
+  page: number;
+  pageSize: number;
+  total: number;
+  orders: OrderListItem[];
+};
+
+export type RefundListItem = {
+  id: string;
+  refundNo: string;
+  reason: string;
+  status: string;
+  amount: number;
+  requestedAt: string;
+  completedAt: string | null;
+  note: string | null;
+  order: {
+    orderNo: string;
+    platform: string;
+    placedAt: string;
+  };
+  product: {
+    sku: string;
+    name: string;
+    category: string;
+  } | null;
+};
+
+export type RefundsResponse = {
+  page: number;
+  pageSize: number;
+  total: number;
+  refunds: RefundListItem[];
+};
+
 export type DashboardData = {
   filterOptions: FilterOptionsResponse;
   summary: SummaryResponse;
@@ -119,4 +193,69 @@ export async function fetchDashboardData(
     topProducts,
     refundSummary,
   };
+}
+
+function buildFilterParams(filters: DashboardFilters): URLSearchParams {
+  const params = new URLSearchParams({ period: filters.period });
+
+  if (filters.platform !== 'all') {
+    params.set('platform', filters.platform);
+  }
+
+  if (filters.category !== 'all') {
+    params.set('category', filters.category);
+  }
+
+  if (filters.productSearch.trim()) {
+    params.set('productSearch', filters.productSearch.trim());
+  }
+
+  if (filters.refundStatus !== 'all') {
+    params.set('refundStatus', filters.refundStatus);
+  }
+
+  return params;
+}
+
+export async function fetchOrders(
+  filters: DashboardFilters,
+  options: { date?: string; page: number; pageSize: number },
+): Promise<OrdersResponse> {
+  const params = buildFilterParams(filters);
+  params.set('page', String(options.page));
+  params.set('pageSize', String(options.pageSize));
+
+  if (options.date) {
+    params.set('date', options.date);
+  }
+
+  return getJson<OrdersResponse>(`/orders?${params}`);
+}
+
+export async function fetchRefunds(
+  filters: DashboardFilters,
+  options: { page: number; pageSize: number },
+): Promise<RefundsResponse> {
+  const params = buildFilterParams(filters);
+  params.set('page', String(options.page));
+  params.set('pageSize', String(options.pageSize));
+
+  return getJson<RefundsResponse>(`/refunds?${params}`);
+}
+
+export async function updateRefundStatus(
+  refundId: string,
+  status: string,
+): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/refunds/${refundId}/status`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
 }

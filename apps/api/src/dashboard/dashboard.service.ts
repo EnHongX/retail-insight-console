@@ -8,6 +8,10 @@ import {
   buildTopProducts,
   validRevenueOrderStatuses,
 } from './dashboard.metrics';
+import {
+  assertRefundTransition,
+  normalizeRefundStatus,
+} from './refund-workflow';
 
 export type DashboardPeriod = 'today' | '7d' | '30d';
 export type DashboardFilters = {
@@ -17,6 +21,14 @@ export type DashboardFilters = {
   productSearch?: string;
   refundStatus?: string;
   sort?: string;
+  date?: string;
+  page?: string;
+  pageSize?: string;
+};
+
+type DateWindow = {
+  start: Date;
+  end: Date;
 };
 
 function getPeriodStart(period: DashboardPeriod, now = new Date()): Date {
@@ -69,6 +81,71 @@ function cleanRefundStatus(value?: string): RefundStatus | undefined {
   return undefined;
 }
 
+function getDateWindow(filters: DashboardFilters): DateWindow {
+  if (filters.date && /^\d{4}-\d{2}-\d{2}$/.test(filters.date)) {
+    const start = new Date(`${filters.date}T00:00:00.000Z`);
+    const end = new Date(start);
+    end.setUTCDate(end.getUTCDate() + 1);
+
+    return { start, end };
+  }
+
+  const period = normalizePeriod(filters.period);
+  return {
+    start: getPeriodStart(period),
+    end: getPeriodEnd(),
+  };
+}
+
+function getPagination(filters: DashboardFilters) {
+  const page = Math.max(Number(filters.page ?? 1) || 1, 1);
+  const pageSize = Math.min(Math.max(Number(filters.pageSize ?? 10) || 10, 1), 50);
+
+  return {
+    page,
+    pageSize,
+    skip: (page - 1) * pageSize,
+  };
+}
+
+function productFilter(category?: string, productSearch?: string) {
+  if (!category && !productSearch) {
+    return {};
+  }
+
+  return {
+    product: {
+      ...(category ? { category } : {}),
+      ...(productSearch
+        ? {
+            OR: [
+              { name: { contains: productSearch, mode: 'insensitive' as const } },
+              { sku: { contains: productSearch, mode: 'insensitive' as const } },
+            ],
+          }
+        : {}),
+    },
+  };
+}
+
+function orderWhere(filters: DashboardFilters, window: DateWindow) {
+  const platform = cleanFilter(filters.platform);
+  const category = cleanFilter(filters.category);
+  const productSearch = cleanFilter(filters.productSearch);
+
+  return {
+    placedAt: { gte: window.start, lt: window.end },
+    ...(platform ? { platform } : {}),
+    ...(category || productSearch
+      ? {
+          items: {
+            some: productFilter(category, productSearch),
+          },
+        }
+      : {}),
+  };
+}
+
 @Injectable()
 export class DashboardService {
   constructor(private readonly prisma: PrismaService) {}
@@ -92,6 +169,164 @@ export class DashboardService {
       categories: categories.map((item) => item.category),
       refundStatuses: ['REQUESTED', 'APPROVED', 'REJECTED', 'COMPLETED'],
     };
+  }
+
+  async getOrders(filters: DashboardFilters = {}) {
+    const window = getDateWindow(filters);
+    const pagination = getPagination(filters);
+    const where = orderWhere(filters, window);
+    const [total, orders] = await Promise.all([
+      this.prisma.order.count({ where }),
+      this.prisma.order.findMany({
+        where,
+        orderBy: { placedAt: 'desc' },
+        skip: pagination.skip,
+        take: pagination.pageSize,
+        select: {
+          id: true,
+          orderNo: true,
+          platform: true,
+          placedAt: true,
+          status: true,
+          grossAmount: true,
+          discountAmount: true,
+          netAmount: true,
+          customerRegion: true,
+          items: {
+            select: {
+              id: true,
+              quantity: true,
+              unitPrice: true,
+              discountAmount: true,
+              grossAmount: true,
+              netAmount: true,
+              product: {
+                select: {
+                  sku: true,
+                  name: true,
+                  category: true,
+                },
+              },
+              refunds: {
+                select: {
+                  refundNo: true,
+                  status: true,
+                  amount: true,
+                },
+              },
+            },
+          },
+          refunds: {
+            select: {
+              id: true,
+              refundNo: true,
+              status: true,
+              amount: true,
+              requestedAt: true,
+              completedAt: true,
+              reason: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total,
+      orders,
+    };
+  }
+
+  async getRefunds(filters: DashboardFilters = {}) {
+    const window = getDateWindow(filters);
+    const pagination = getPagination(filters);
+    const platform = cleanFilter(filters.platform);
+    const category = cleanFilter(filters.category);
+    const productSearch = cleanFilter(filters.productSearch);
+    const refundStatus = cleanRefundStatus(filters.refundStatus);
+    const where = {
+      ...(refundStatus ? { status: refundStatus } : {}),
+      ...(category || productSearch
+        ? { product: productFilter(category, productSearch).product }
+        : {}),
+      OR: [
+        { completedAt: { gte: window.start, lt: window.end } },
+        {
+          status: { in: ['REQUESTED', 'APPROVED', 'REJECTED'] as RefundStatus[] },
+          requestedAt: { gte: window.start, lt: window.end },
+        },
+      ],
+      ...(platform ? { order: { platform } } : {}),
+    };
+    const [total, refunds] = await Promise.all([
+      this.prisma.refund.count({ where }),
+      this.prisma.refund.findMany({
+        where,
+        orderBy: { requestedAt: 'desc' },
+        skip: pagination.skip,
+        take: pagination.pageSize,
+        select: {
+          id: true,
+          refundNo: true,
+          reason: true,
+          status: true,
+          amount: true,
+          requestedAt: true,
+          completedAt: true,
+          note: true,
+          order: {
+            select: {
+              orderNo: true,
+              platform: true,
+              placedAt: true,
+            },
+          },
+          product: {
+            select: {
+              sku: true,
+              name: true,
+              category: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total,
+      refunds,
+    };
+  }
+
+  async updateRefundStatus(refundId: string, nextStatusInput: string) {
+    const nextStatus = normalizeRefundStatus(nextStatusInput);
+    const refund = await this.prisma.refund.findUniqueOrThrow({
+      where: { id: refundId },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    assertRefundTransition(refund.status, nextStatus);
+
+    return this.prisma.refund.update({
+      where: { id: refundId },
+      data: {
+        status: nextStatus,
+        completedAt: nextStatus === RefundStatus.COMPLETED ? new Date() : null,
+      },
+      select: {
+        id: true,
+        refundNo: true,
+        status: true,
+        completedAt: true,
+      },
+    });
   }
 
   async getSummary(filters: DashboardFilters = {}) {

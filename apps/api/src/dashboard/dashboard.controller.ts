@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { type DashboardFilters, DashboardService } from './dashboard.service';
 
 @Controller()
@@ -13,6 +13,11 @@ export class DashboardController {
   @Get('dashboard/summary')
   getSummary(@Query() filters: DashboardFilters) {
     return this.dashboardService.getSummary(filters);
+  }
+
+  @Get('orders')
+  getOrders(@Query() filters: DashboardFilters) {
+    return this.dashboardService.getOrders(filters);
   }
 
   @Get('dashboard/sales-trend')
@@ -31,5 +36,18 @@ export class DashboardController {
   @Get('refunds/summary')
   getRefundSummary(@Query() filters: DashboardFilters) {
     return this.dashboardService.getRefundSummary(filters);
+  }
+
+  @Get('refunds')
+  getRefunds(@Query() filters: DashboardFilters) {
+    return this.dashboardService.getRefunds(filters);
+  }
+
+  @Patch('refunds/:id/status')
+  updateRefundStatus(
+    @Param('id') id: string,
+    @Body() body: { status?: string },
+  ) {
+    return this.dashboardService.updateRefundStatus(id, body.status ?? '');
   }
 }

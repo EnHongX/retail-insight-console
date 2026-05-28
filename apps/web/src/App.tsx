@@ -3,8 +3,13 @@ import {
   type DashboardData,
   type DashboardFilters,
   type DashboardPeriod,
+  type OrdersResponse,
   type ProductSort,
+  type RefundsResponse,
   fetchDashboardData,
+  fetchOrders,
+  fetchRefunds,
+  updateRefundStatus,
 } from './api';
 import './App.css';
 import { formatCurrency, formatRate, getTrendHeight } from './dashboard-format';
@@ -29,8 +34,16 @@ export function App() {
     parseDashboardFilters(window.location.search),
   );
   const [data, setData] = useState<DashboardData | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [orderPage, setOrderPage] = useState(1);
+  const [orders, setOrders] = useState<OrdersResponse | null>(null);
+  const [refundPage, setRefundPage] = useState(1);
+  const [refunds, setRefunds] = useState<RefundsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDetailLoading, setIsDetailLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [detailError, setDetailError] = useState<string | null>(null);
 
   useEffect(() => {
     const query = serializeDashboardFilters(filters);
@@ -40,6 +53,50 @@ export function App() {
       window.history.replaceState(null, '', nextUrl);
     }
   }, [filters]);
+
+  useEffect(() => {
+    setOrderPage(1);
+    setRefundPage(1);
+  }, [filters, selectedDate]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    setIsDetailLoading(true);
+    setDetailError(null);
+
+    Promise.all([
+      fetchOrders(filters, {
+        date: selectedDate ?? undefined,
+        page: orderPage,
+        pageSize: 6,
+      }),
+      fetchRefunds(filters, {
+        page: refundPage,
+        pageSize: 6,
+      }),
+    ])
+      .then(([nextOrders, nextRefunds]) => {
+        if (!ignore) {
+          setOrders(nextOrders);
+          setRefunds(nextRefunds);
+        }
+      })
+      .catch(() => {
+        if (!ignore) {
+          setDetailError('明细数据加载失败');
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setIsDetailLoading(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [filters, selectedDate, orderPage, refundPage]);
 
   useEffect(() => {
     let ignore = false;
@@ -87,6 +144,29 @@ export function App() {
       ...current,
       ...nextFilters,
     }));
+  }
+
+  async function changeRefundStatus(refundId: string, status: string) {
+    setDetailError(null);
+
+    try {
+      await updateRefundStatus(refundId, status);
+      const [nextDashboard, nextRefunds, nextOrders] = await Promise.all([
+        fetchDashboardData(filters),
+        fetchRefunds(filters, { page: refundPage, pageSize: 6 }),
+        fetchOrders(filters, {
+          date: selectedDate ?? undefined,
+          page: orderPage,
+          pageSize: 6,
+        }),
+      ]);
+
+      setData(nextDashboard);
+      setRefunds(nextRefunds);
+      setOrders(nextOrders);
+    } catch {
+      setDetailError('退款状态更新失败');
+    }
   }
 
   return (
@@ -224,7 +304,16 @@ export function App() {
                 </svg>
                 <div className="trend-chart">
                   {data.salesTrend.points.map((point) => (
-                    <div className="trend-bar-wrap" key={point.date}>
+                    <button
+                      className={`trend-bar-wrap${selectedDate === point.date ? ' selected' : ''}`}
+                      key={point.date}
+                      onClick={() =>
+                        setSelectedDate((current) =>
+                          current === point.date ? null : point.date,
+                        )
+                      }
+                      type="button"
+                    >
                       <div
                         aria-label={`${point.date} GMV ${point.gmv}`}
                         className="trend-bar"
@@ -233,7 +322,7 @@ export function App() {
                         }}
                       />
                       <div className="trend-date">{point.date.slice(5)}</div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -316,6 +405,133 @@ export function App() {
             <div className="empty-state">暂无商品排行数据</div>
           )}
         </section>
+
+        <section className="content-grid detail-grid">
+          <div className="panel">
+            <div className="panel-header">
+              <h2>订单明细</h2>
+              <span>{selectedDate ? `${selectedDate} 单日` : '当前周期'}</span>
+            </div>
+            {detailError ? <div className="status-line error">{detailError}</div> : null}
+            {isDetailLoading ? (
+              <div className="empty-state">正在加载订单明细</div>
+            ) : orders && orders.orders.length > 0 ? (
+              <div className="order-list">
+                {orders.orders.map((order) => (
+                  <article className="order-row" key={order.id}>
+                    <button
+                      className="order-summary"
+                      onClick={() =>
+                        setExpandedOrderId((current) =>
+                          current === order.id ? null : order.id,
+                        )
+                      }
+                      type="button"
+                    >
+                      <span>
+                        <strong>{order.orderNo}</strong>
+                        <small>
+                          {order.platform} / {order.customerRegion ?? 'Unknown'}
+                        </small>
+                      </span>
+                      <span className="status-pill">{order.status}</span>
+                      <span>{new Date(order.placedAt).toISOString().slice(0, 10)}</span>
+                      <span className="numeric">{formatCurrency(Number(order.netAmount))}</span>
+                    </button>
+                    {expandedOrderId === order.id ? (
+                      <div className="order-items">
+                        {order.items.map((item) => (
+                          <div className="order-item" key={item.id}>
+                            <span>
+                              <strong>{item.product.name}</strong>
+                              <small>{item.product.sku} / {item.product.category}</small>
+                            </span>
+                            <span>x{item.quantity}</span>
+                            <span>{formatCurrency(Number(item.netAmount))}</span>
+                            <span>
+                              {item.refunds.length > 0
+                                ? `${item.refunds.length} refund`
+                                : 'no refund'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </article>
+                ))}
+                <Pager
+                  page={orders.page}
+                  pageSize={orders.pageSize}
+                  total={orders.total}
+                  onNext={() => setOrderPage((page) => page + 1)}
+                  onPrev={() => setOrderPage((page) => Math.max(1, page - 1))}
+                />
+              </div>
+            ) : (
+              <div className="empty-state">暂无订单明细</div>
+            )}
+          </div>
+
+          <div className="panel">
+            <div className="panel-header">
+              <h2>退款处理工作台</h2>
+              <span>状态机审核</span>
+            </div>
+            {isDetailLoading ? (
+              <div className="empty-state">正在加载退款单</div>
+            ) : refunds && refunds.refunds.length > 0 ? (
+              <div className="refund-list">
+                {refunds.refunds.map((refund) => (
+                  <article className="refund-row" key={refund.id}>
+                    <div>
+                      <strong>{refund.refundNo}</strong>
+                      <small>
+                        {refund.order.orderNo} / {refund.product?.sku ?? 'No SKU'}
+                      </small>
+                    </div>
+                    <div className="refund-row-meta">
+                      <span className="status-pill">{refund.status}</span>
+                      <span>{refund.reason}</span>
+                      <strong>{formatCurrency(Number(refund.amount))}</strong>
+                    </div>
+                    <div className="refund-actions">
+                      <button
+                        disabled={refund.status !== 'REQUESTED'}
+                        onClick={() => changeRefundStatus(refund.id, 'APPROVED')}
+                        type="button"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        disabled={!['REQUESTED', 'APPROVED'].includes(refund.status)}
+                        onClick={() => changeRefundStatus(refund.id, 'REJECTED')}
+                        type="button"
+                      >
+                        Reject
+                      </button>
+                      <button
+                        disabled={refund.status !== 'APPROVED'}
+                        onClick={() => changeRefundStatus(refund.id, 'COMPLETED')}
+                        type="button"
+                      >
+                        Complete
+                      </button>
+                    </div>
+                  </article>
+                ))}
+                <Pager
+                  page={refunds.page}
+                  pageSize={refunds.pageSize}
+                  total={refunds.total}
+                  onNext={() => setRefundPage((page) => page + 1)}
+                  onPrev={() => setRefundPage((page) => Math.max(1, page - 1))}
+                />
+              </div>
+            ) : (
+              <div className="empty-state">暂无退款单</div>
+            )}
+          </div>
+        </section>
       </main>
     </div>
   );
@@ -336,5 +552,35 @@ function KpiCard({
       <div className="kpi-value">{value}</div>
       <div className="kpi-note">{note}</div>
     </article>
+  );
+}
+
+function Pager({
+  page,
+  pageSize,
+  total,
+  onPrev,
+  onNext,
+}: {
+  page: number;
+  pageSize: number;
+  total: number;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const maxPage = Math.max(1, Math.ceil(total / pageSize));
+
+  return (
+    <div className="pager">
+      <button disabled={page <= 1} onClick={onPrev} type="button">
+        上一页
+      </button>
+      <span>
+        {page} / {maxPage}，共 {total} 条
+      </span>
+      <button disabled={page >= maxPage} onClick={onNext} type="button">
+        下一页
+      </button>
+    </div>
   );
 }

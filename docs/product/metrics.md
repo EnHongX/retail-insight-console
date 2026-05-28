@@ -86,3 +86,23 @@ Seed 数据需要稳定覆盖以下场景：
 - 存在 `CANCELLED`、`PENDING_PAYMENT` 订单，验证有效订单过滤。
 - 存在完成退款、待审核退款、已批准退款、已拒绝退款。
 - 至少一笔退款的 `requestedAt` 和 `completedAt` 不在同一天，验证退款完成时间口径。
+
+## 交互链路
+
+### 订单明细 Drilldown
+
+- 点击销售趋势中的日期后，订单明细切换为该日订单。
+- 明细继承平台、分类、商品搜索等筛选条件。
+- 订单可展开查看商品明细和关联退款。
+- 分页切换不得丢失当前筛选和选中日期。
+
+### 退款处理工作台
+
+- 工作台继承 Dashboard 当前筛选和退款状态筛选。
+- 可执行 `Approve`、`Reject`、`Complete`。
+- 合法状态流转：
+  - `REQUESTED -> APPROVED`
+  - `REQUESTED -> REJECTED`
+  - `APPROVED -> COMPLETED`
+  - `APPROVED -> REJECTED`
+- `REJECTED` 和 `COMPLETED` 是终态。
