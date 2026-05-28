@@ -1,30 +1,35 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { DashboardService } from './dashboard.service';
+import { type DashboardFilters, DashboardService } from './dashboard.service';
 
 @Controller()
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
+  @Get('dashboard/filters')
+  getFilters() {
+    return this.dashboardService.getFilterOptions();
+  }
+
   @Get('dashboard/summary')
-  getSummary(@Query('period') period?: string) {
-    return this.dashboardService.getSummary(period);
+  getSummary(@Query() filters: DashboardFilters) {
+    return this.dashboardService.getSummary(filters);
   }
 
   @Get('dashboard/sales-trend')
-  getSalesTrend(@Query('period') period?: string) {
-    return this.dashboardService.getSalesTrend(period);
+  getSalesTrend(@Query() filters: DashboardFilters) {
+    return this.dashboardService.getSalesTrend(filters);
   }
 
   @Get('products/top-selling')
   getTopProducts(
-    @Query('period') period?: string,
+    @Query() filters: DashboardFilters,
     @Query('limit') limit?: string,
   ) {
-    return this.dashboardService.getTopProducts(period, limit);
+    return this.dashboardService.getTopProducts(filters, limit);
   }
 
   @Get('refunds/summary')
-  getRefundSummary(@Query('period') period?: string) {
-    return this.dashboardService.getRefundSummary(period);
+  getRefundSummary(@Query() filters: DashboardFilters) {
+    return this.dashboardService.getRefundSummary(filters);
   }
 }

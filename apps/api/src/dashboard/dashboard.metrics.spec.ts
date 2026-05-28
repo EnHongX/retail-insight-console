@@ -13,6 +13,7 @@ const orders = [
     id: 'order-1',
     orderNo: 'ORD-1',
     placedAt: new Date('2026-05-28T02:00:00.000Z'),
+    platform: 'tmall',
     status: 'COMPLETED',
     grossAmount: '758.00',
     netAmount: '698.00',
@@ -21,6 +22,7 @@ const orders = [
     id: 'order-2',
     orderNo: 'ORD-2',
     placedAt: new Date('2026-05-28T08:30:00.000Z'),
+    platform: 'jd',
     status: 'PAID',
     grossAmount: '558.00',
     netAmount: '538.00',
@@ -29,6 +31,7 @@ const orders = [
     id: 'order-3',
     orderNo: 'ORD-3',
     placedAt: new Date('2026-05-27T12:00:00.000Z'),
+    platform: 'tmall',
     status: 'CANCELLED',
     grossAmount: '389.00',
     netAmount: '0.00',
@@ -41,6 +44,7 @@ const orderItems = [
     productName: 'Pour Over Coffee Kit',
     sku: 'RI-DRIP-001',
     category: 'Kitchen',
+    platform: 'tmall',
     orderStatus: 'COMPLETED',
     quantity: 1,
     netAmount: '279.00',
@@ -50,6 +54,7 @@ const orderItems = [
     productName: 'Desk Lamp Pro',
     sku: 'RI-LAMP-002',
     category: 'Home Electronics',
+    platform: 'tmall',
     orderStatus: 'COMPLETED',
     quantity: 1,
     netAmount: '419.00',
@@ -59,6 +64,7 @@ const orderItems = [
     productName: 'Yoga Training Mat',
     sku: 'RI-MAT-004',
     category: 'Sports',
+    platform: 'jd',
     orderStatus: 'PAID',
     quantity: 2,
     netAmount: '338.00',
@@ -68,6 +74,7 @@ const orderItems = [
     productName: 'Commuter Backpack',
     sku: 'RI-BAG-003',
     category: 'Bags',
+    platform: 'tmall',
     orderStatus: 'CANCELLED',
     quantity: 1,
     netAmount: '389.00',
@@ -85,6 +92,11 @@ const refunds = [
     amount: '169.00',
     completedAt: null,
   },
+  {
+    status: 'COMPLETED',
+    amount: '50.00',
+    completedAt: new Date('2026-05-27T06:15:00.000Z'),
+  },
 ];
 
 describe('dashboard metrics', () => {
@@ -92,14 +104,29 @@ describe('dashboard metrics', () => {
     expect(buildSummary({ orders, refunds, validStatuses })).toEqual({
       gmv: 1316,
       orderCount: 2,
-      refundAmount: 419,
-      refundRate: 0.3184,
+      refundAmount: 469,
+      refundRate: 0.3564,
       averageOrderValue: 618,
     });
   });
 
   it('builds daily sales trend from valid orders only', () => {
     expect(buildSalesTrend({ orders, validStatuses })).toEqual([
+      { date: '2026-05-28', gmv: 1316, orderCount: 2, netSales: 1236 },
+    ]);
+  });
+
+  it('fills missing trend days when a date window is provided', () => {
+    expect(
+      buildSalesTrend({
+        orders,
+        validStatuses,
+        startDate: new Date('2026-05-26T00:00:00.000Z'),
+        endDate: new Date('2026-05-29T00:00:00.000Z'),
+      }),
+    ).toEqual([
+      { date: '2026-05-26', gmv: 0, orderCount: 0, netSales: 0 },
+      { date: '2026-05-27', gmv: 0, orderCount: 0, netSales: 0 },
       { date: '2026-05-28', gmv: 1316, orderCount: 2, netSales: 1236 },
     ]);
   });
@@ -125,11 +152,50 @@ describe('dashboard metrics', () => {
     ]);
   });
 
+  it('can rank products by net sales for table sorting', () => {
+    expect(
+      buildTopProducts({
+        orderItems,
+        validStatuses,
+        limit: 1,
+        sortBy: 'netSales',
+      }),
+    ).toEqual([
+      {
+        productId: 'product-2',
+        name: 'Desk Lamp Pro',
+        sku: 'RI-LAMP-002',
+        category: 'Home Electronics',
+        quantity: 1,
+        netSales: 419,
+      },
+    ]);
+  });
+
   it('summarizes refund workflow states', () => {
     expect(buildRefundSummary({ refunds, gmv: 1316 })).toEqual({
+      completedAmount: 469,
+      completedCount: 2,
+      pendingCount: 1,
+      refundRate: 0.3564,
+      rejectedCount: 0,
+    });
+  });
+
+  it('filters refunds by completed time and status for reporting', () => {
+    expect(
+      buildRefundSummary({
+        refunds,
+        gmv: 1316,
+        startDate: new Date('2026-05-28T00:00:00.000Z'),
+        endDate: new Date('2026-05-29T00:00:00.000Z'),
+        refundStatus: 'COMPLETED',
+      }),
+    ).toEqual({
       completedAmount: 419,
       completedCount: 1,
-      pendingCount: 1,
+      pendingCount: 0,
+      rejectedCount: 0,
       refundRate: 0.3184,
     });
   });

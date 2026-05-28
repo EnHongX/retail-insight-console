@@ -71,8 +71,24 @@ API 健康检查地址为 `http://localhost:7102/health`。由于后端在启动
 - `GET /dashboard/sales-trend?period=7d`
 - `GET /products/top-selling?period=7d&limit=5`
 - `GET /refunds/summary?period=7d`
+- `GET /dashboard/filters`
 
-`period` 支持 `today`、`7d`、`30d`，无效值默认按 `7d` 处理。
+查询参数：
+
+- `period`：支持 `today`、`7d`、`30d`，无效值默认按 `7d` 处理。
+- `platform`：按订单平台筛选，例如 `tmall`、`jd`、`douyin`。
+- `category`：按商品分类筛选。
+- `productSearch`：按商品名称或 SKU 模糊搜索。
+- `refundStatus`：按退款状态筛选。
+- `sort`：商品排行支持 `quantity`、`netSales`。
+
+指标时间口径：
+
+- 订单、GMV、商品排行按 `orders.placedAt` 统计。
+- 已完成退款金额和退款率按 `refunds.completedAt` 统计。
+- 商品排行只统计 `PAID`、`SHIPPED`、`COMPLETED` 订单。
+
+Seed 数据覆盖近 30 天，包含多平台、多分类、取消订单、待支付订单、跨日完成退款、待处理退款和拒绝退款，便于复现筛选和边界场景。
 
 ## 校验
 

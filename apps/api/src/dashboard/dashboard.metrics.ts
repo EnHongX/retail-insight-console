@@ -59,6 +59,7 @@ export type RefundSummaryMetric = {
   completedAmount: number;
   completedCount: number;
   pendingCount: number;
+  rejectedCount: number;
   refundRate: number;
 };
 
@@ -80,6 +81,32 @@ function isValidOrderStatus(status: StatusInput, validStatuses: readonly string[
 
 function toDateKey(date: Date): string {
   return date.toISOString().slice(0, 10);
+}
+
+function addDays(date: Date, days: number): Date {
+  const nextDate = new Date(date);
+  nextDate.setUTCDate(nextDate.getUTCDate() + days);
+  return nextDate;
+}
+
+function isInDateRange(
+  date: Date | null,
+  startDate?: Date,
+  endDate?: Date,
+): boolean {
+  if (!date) {
+    return false;
+  }
+
+  if (startDate && date < startDate) {
+    return false;
+  }
+
+  if (endDate && date >= endDate) {
+    return false;
+  }
+
+  return true;
 }
 
 export function buildSummary({
@@ -119,14 +146,33 @@ export function buildSummary({
 export function buildSalesTrend({
   orders,
   validStatuses,
+  startDate,
+  endDate,
 }: {
   orders: MetricOrder[];
   validStatuses: readonly string[];
+  startDate?: Date;
+  endDate?: Date;
 }): SalesTrendPoint[] {
   const points = new Map<string, SalesTrendPoint>();
 
+  if (startDate && endDate) {
+    for (let date = new Date(startDate); date < endDate; date = addDays(date, 1)) {
+      points.set(toDateKey(date), {
+        date: toDateKey(date),
+        gmv: 0,
+        orderCount: 0,
+        netSales: 0,
+      });
+    }
+  }
+
   for (const order of orders) {
     if (!isValidOrderStatus(order.status, validStatuses)) {
+      continue;
+    }
+
+    if (startDate && endDate && !isInDateRange(order.placedAt, startDate, endDate)) {
       continue;
     }
 
@@ -153,10 +199,12 @@ export function buildTopProducts({
   orderItems,
   validStatuses,
   limit,
+  sortBy = 'quantity',
 }: {
   orderItems: MetricOrderItem[];
   validStatuses: readonly string[];
   limit: number;
+  sortBy?: 'quantity' | 'netSales';
 }): TopProductMetric[] {
   const products = new Map<string, TopProductMetric>();
 
@@ -181,6 +229,14 @@ export function buildTopProducts({
 
   return [...products.values()]
     .sort((left, right) => {
+      if (sortBy === 'netSales') {
+        if (right.netSales !== left.netSales) {
+          return right.netSales - left.netSales;
+        }
+
+        return right.quantity - left.quantity;
+      }
+
       if (right.quantity !== left.quantity) {
         return right.quantity - left.quantity;
       }
@@ -193,13 +249,39 @@ export function buildTopProducts({
 export function buildRefundSummary({
   refunds,
   gmv,
+  startDate,
+  endDate,
+  refundStatus,
 }: {
   refunds: MetricRefund[];
   gmv: number;
+  startDate?: Date;
+  endDate?: Date;
+  refundStatus?: string;
 }): RefundSummaryMetric {
-  const completedRefunds = refunds.filter((refund) => refund.status === 'COMPLETED');
-  const pendingRefunds = refunds.filter((refund) =>
+  const filteredRefunds = refunds.filter((refund) => {
+    if (refundStatus && refund.status !== refundStatus) {
+      return false;
+    }
+
+    if (startDate || endDate) {
+      if (refund.status === 'COMPLETED') {
+        return isInDateRange(refund.completedAt, startDate, endDate);
+      }
+
+      return true;
+    }
+
+    return true;
+  });
+  const completedRefunds = filteredRefunds.filter(
+    (refund) => refund.status === 'COMPLETED',
+  );
+  const pendingRefunds = filteredRefunds.filter((refund) =>
     ['REQUESTED', 'APPROVED'].includes(refund.status),
+  );
+  const rejectedRefunds = filteredRefunds.filter(
+    (refund) => refund.status === 'REJECTED',
   );
   const completedAmount = completedRefunds.reduce(
     (sum, refund) => sum + amountToNumber(refund.amount),
@@ -210,6 +292,7 @@ export function buildRefundSummary({
     completedAmount: roundCurrency(completedAmount),
     completedCount: completedRefunds.length,
     pendingCount: pendingRefunds.length,
+    rejectedCount: rejectedRefunds.length,
     refundRate: gmv === 0 ? 0 : roundRate(completedAmount / gmv),
   };
 }

@@ -1,4 +1,20 @@
 export type DashboardPeriod = 'today' | '7d' | '30d';
+export type ProductSort = 'quantity' | 'netSales';
+
+export type DashboardFilters = {
+  period: DashboardPeriod;
+  platform: string;
+  category: string;
+  productSearch: string;
+  refundStatus: string;
+  sort: ProductSort;
+};
+
+export type FilterOptionsResponse = {
+  platforms: string[];
+  categories: string[];
+  refundStatuses: string[];
+};
 
 export type SummaryResponse = {
   period: DashboardPeriod;
@@ -40,10 +56,12 @@ export type RefundSummaryResponse = {
   completedAmount: number;
   completedCount: number;
   pendingCount: number;
+  rejectedCount: number;
   refundRate: number;
 };
 
 export type DashboardData = {
+  filterOptions: FilterOptionsResponse;
   summary: SummaryResponse;
   salesTrend: SalesTrendResponse;
   topProducts: TopProductsResponse;
@@ -63,17 +81,39 @@ async function getJson<T>(path: string): Promise<T> {
 }
 
 export async function fetchDashboardData(
-  period: DashboardPeriod,
+  filters: DashboardFilters,
 ): Promise<DashboardData> {
-  const params = new URLSearchParams({ period });
-  const [summary, salesTrend, topProducts, refundSummary] = await Promise.all([
-    getJson<SummaryResponse>(`/dashboard/summary?${params}`),
-    getJson<SalesTrendResponse>(`/dashboard/sales-trend?${params}`),
-    getJson<TopProductsResponse>(`/products/top-selling?${params}`),
-    getJson<RefundSummaryResponse>(`/refunds/summary?${params}`),
-  ]);
+  const params = new URLSearchParams({ period: filters.period });
+
+  if (filters.platform !== 'all') {
+    params.set('platform', filters.platform);
+  }
+
+  if (filters.category !== 'all') {
+    params.set('category', filters.category);
+  }
+
+  if (filters.productSearch.trim()) {
+    params.set('productSearch', filters.productSearch.trim());
+  }
+
+  if (filters.refundStatus !== 'all') {
+    params.set('refundStatus', filters.refundStatus);
+  }
+
+  params.set('sort', filters.sort);
+
+  const [filterOptions, summary, salesTrend, topProducts, refundSummary] =
+    await Promise.all([
+      getJson<FilterOptionsResponse>('/dashboard/filters'),
+      getJson<SummaryResponse>(`/dashboard/summary?${params}`),
+      getJson<SalesTrendResponse>(`/dashboard/sales-trend?${params}`),
+      getJson<TopProductsResponse>(`/products/top-selling?${params}&limit=10`),
+      getJson<RefundSummaryResponse>(`/refunds/summary?${params}`),
+    ]);
 
   return {
+    filterOptions,
     summary,
     salesTrend,
     topProducts,

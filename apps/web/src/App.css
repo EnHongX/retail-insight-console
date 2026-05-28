@@ -22,6 +22,17 @@ button {
   font: inherit;
 }
 
+select,
+input {
+  width: 100%;
+  border: 1px solid #cbd6d2;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2933;
+  font: inherit;
+  padding: 9px 10px;
+}
+
 .app-shell {
   min-height: 100vh;
   background:
@@ -56,7 +67,8 @@ button {
   font-size: 14px;
 }
 
-.period-tabs {
+.period-tabs,
+.sort-tabs {
   display: inline-flex;
   gap: 4px;
   padding: 4px;
@@ -65,7 +77,8 @@ button {
   background: #ffffff;
 }
 
-.period-tabs button {
+.period-tabs button,
+.sort-tabs button {
   min-width: 72px;
   border: 0;
   border-radius: 6px;
@@ -75,7 +88,8 @@ button {
   padding: 8px 12px;
 }
 
-.period-tabs button.active {
+.period-tabs button.active,
+.sort-tabs button.active {
   background: #24453f;
   color: #ffffff;
 }
@@ -96,6 +110,25 @@ button {
 
 .status-line.error {
   color: #9a3412;
+}
+
+.filter-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #d8e0dd;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(31, 41, 51, 0.05);
+}
+
+.filter-panel label {
+  display: grid;
+  gap: 6px;
+  color: #63716d;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .kpi-grid {
@@ -170,19 +203,33 @@ button {
 .trend-chart {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(42px, 1fr);
+  grid-auto-columns: minmax(30px, 1fr);
   align-items: end;
-  gap: 12px;
+  gap: 8px;
   min-height: 260px;
   padding-top: 12px;
   overflow-x: auto;
+}
+
+.combo-chart {
+  position: relative;
+  min-height: 286px;
+}
+
+.line-chart {
+  position: absolute;
+  inset: 12px 0 34px;
+  z-index: 2;
+  width: 100%;
+  height: calc(100% - 46px);
+  pointer-events: none;
 }
 
 .trend-bar-wrap {
   display: grid;
   align-items: end;
   gap: 8px;
-  min-width: 42px;
+  min-width: 30px;
   height: 240px;
 }
 
@@ -195,9 +242,10 @@ button {
 
 .trend-date {
   color: #63716d;
-  font-size: 12px;
+  font-size: 11px;
   text-align: center;
   white-space: nowrap;
+  writing-mode: vertical-rl;
 }
 
 .product-table {
@@ -240,7 +288,7 @@ button {
 
 .refund-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -284,6 +332,7 @@ button {
 
   .kpi-grid,
   .content-grid,
+  .filter-panel,
   .refund-grid {
     grid-template-columns: 1fr;
   }

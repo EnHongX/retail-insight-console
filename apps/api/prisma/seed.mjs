@@ -2,6 +2,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+const baseDate = new Date('2026-05-28T00:00:00.000Z');
+
 const products = [
   {
     sku: 'RI-DRIP-001',
@@ -67,353 +69,236 @@ const products = [
     price: '529.00',
     cost: '246.00',
   },
-];
-
-const orders = [
   {
-    orderNo: 'ORD-20260528-0001',
-    platform: 'tmall',
-    placedAt: new Date('2026-05-28T02:20:00.000Z'),
-    status: 'COMPLETED',
-    grossAmount: '758.00',
-    discountAmount: '60.00',
-    netAmount: '698.00',
-    customerRegion: 'Shanghai',
+    sku: 'RI-CAM-009',
+    name: 'Creator Action Camera',
+    category: 'Electronics',
+    brand: 'Auralink',
+    price: '1299.00',
+    cost: '670.00',
   },
   {
-    orderNo: 'ORD-20260528-0002',
-    platform: 'jd',
-    placedAt: new Date('2026-05-28T04:05:00.000Z'),
-    status: 'PAID',
-    grossAmount: '558.00',
-    discountAmount: '20.00',
-    netAmount: '538.00',
-    customerRegion: 'Beijing',
-  },
-  {
-    orderNo: 'ORD-20260527-0003',
-    platform: 'douyin',
-    placedAt: new Date('2026-05-27T13:42:00.000Z'),
-    status: 'SHIPPED',
-    grossAmount: '338.00',
-    discountAmount: '0.00',
-    netAmount: '338.00',
-    customerRegion: 'Guangdong',
-  },
-  {
-    orderNo: 'ORD-20260526-0004',
-    platform: 'tmall',
-    placedAt: new Date('2026-05-26T09:10:00.000Z'),
-    status: 'CANCELLED',
-    grossAmount: '389.00',
-    discountAmount: '0.00',
-    netAmount: '0.00',
-    customerRegion: 'Zhejiang',
-  },
-  {
-    orderNo: 'ORD-20260526-0005',
-    platform: 'jd',
-    placedAt: new Date('2026-05-26T11:24:00.000Z'),
-    status: 'COMPLETED',
-    grossAmount: '899.00',
-    discountAmount: '120.00',
-    netAmount: '779.00',
-    customerRegion: 'Jiangsu',
-  },
-  {
-    orderNo: 'ORD-20260525-0006',
-    platform: 'tmall',
-    placedAt: new Date('2026-05-25T03:18:00.000Z'),
-    status: 'COMPLETED',
-    grossAmount: '1257.00',
-    discountAmount: '88.00',
-    netAmount: '1169.00',
-    customerRegion: 'Sichuan',
-  },
-  {
-    orderNo: 'ORD-20260525-0007',
-    platform: 'douyin',
-    placedAt: new Date('2026-05-25T14:52:00.000Z'),
-    status: 'SHIPPED',
-    grossAmount: '387.00',
-    discountAmount: '30.00',
-    netAmount: '357.00',
-    customerRegion: 'Hubei',
-  },
-  {
-    orderNo: 'ORD-20260524-0008',
-    platform: 'jd',
-    placedAt: new Date('2026-05-24T07:40:00.000Z'),
-    status: 'PAID',
-    grossAmount: '699.00',
-    discountAmount: '0.00',
-    netAmount: '699.00',
-    customerRegion: 'Fujian',
-  },
-  {
-    orderNo: 'ORD-20260523-0009',
-    platform: 'tmall',
-    placedAt: new Date('2026-05-23T05:35:00.000Z'),
-    status: 'COMPLETED',
-    grossAmount: '1456.00',
-    discountAmount: '156.00',
-    netAmount: '1300.00',
-    customerRegion: 'Shanghai',
-  },
-  {
-    orderNo: 'ORD-20260522-0010',
-    platform: 'douyin',
-    placedAt: new Date('2026-05-22T10:12:00.000Z'),
-    status: 'PENDING_PAYMENT',
-    grossAmount: '529.00',
-    discountAmount: '0.00',
-    netAmount: '0.00',
-    customerRegion: 'Henan',
-  },
-  {
-    orderNo: 'ORD-20260521-0011',
-    platform: 'jd',
-    placedAt: new Date('2026-05-21T12:22:00.000Z'),
-    status: 'COMPLETED',
-    grossAmount: '1058.00',
-    discountAmount: '100.00',
-    netAmount: '958.00',
-    customerRegion: 'Beijing',
-  },
-  {
-    orderNo: 'ORD-20260520-0012',
-    platform: 'tmall',
-    placedAt: new Date('2026-05-20T09:05:00.000Z'),
-    status: 'COMPLETED',
-    grossAmount: '597.00',
-    discountAmount: '30.00',
-    netAmount: '567.00',
-    customerRegion: 'Guangdong',
+    sku: 'RI-DESK-010',
+    name: 'Adjustable Standing Desk',
+    category: 'Home Office',
+    brand: 'WorkWell',
+    price: '1599.00',
+    cost: '760.00',
   },
 ];
 
-const orderItems = [
-  {
-    orderNo: 'ORD-20260528-0001',
-    sku: 'RI-DRIP-001',
-    quantity: 1,
-    unitPrice: '299.00',
-    discountAmount: '20.00',
-    grossAmount: '299.00',
-    netAmount: '279.00',
-  },
-  {
-    orderNo: 'ORD-20260528-0001',
-    sku: 'RI-LAMP-002',
-    quantity: 1,
-    unitPrice: '459.00',
-    discountAmount: '40.00',
-    grossAmount: '459.00',
-    netAmount: '419.00',
-  },
-  {
-    orderNo: 'ORD-20260528-0002',
-    sku: 'RI-BAG-003',
-    quantity: 1,
-    unitPrice: '389.00',
-    discountAmount: '20.00',
-    grossAmount: '389.00',
-    netAmount: '369.00',
-  },
-  {
-    orderNo: 'ORD-20260528-0002',
-    sku: 'RI-MAT-004',
-    quantity: 1,
-    unitPrice: '169.00',
-    discountAmount: '0.00',
-    grossAmount: '169.00',
-    netAmount: '169.00',
-  },
-  {
-    orderNo: 'ORD-20260527-0003',
-    sku: 'RI-MAT-004',
-    quantity: 2,
-    unitPrice: '169.00',
-    discountAmount: '0.00',
-    grossAmount: '338.00',
-    netAmount: '338.00',
-  },
-  {
-    orderNo: 'ORD-20260526-0005',
-    sku: 'RI-CHAIR-006',
-    quantity: 1,
-    unitPrice: '899.00',
-    discountAmount: '120.00',
-    grossAmount: '899.00',
-    netAmount: '779.00',
-  },
-  {
-    orderNo: 'ORD-20260525-0006',
-    sku: 'RI-HEAD-007',
-    quantity: 1,
-    unitPrice: '699.00',
-    discountAmount: '50.00',
-    grossAmount: '699.00',
-    netAmount: '649.00',
-  },
-  {
-    orderNo: 'ORD-20260525-0006',
-    sku: 'RI-SHOE-008',
-    quantity: 1,
-    unitPrice: '529.00',
-    discountAmount: '38.00',
-    grossAmount: '529.00',
-    netAmount: '491.00',
-  },
-  {
-    orderNo: 'ORD-20260525-0006',
-    sku: 'RI-MUG-005',
-    quantity: 1,
-    unitPrice: '129.00',
-    discountAmount: '0.00',
-    grossAmount: '129.00',
-    netAmount: '129.00',
-  },
-  {
-    orderNo: 'ORD-20260525-0007',
-    sku: 'RI-MUG-005',
-    quantity: 3,
-    unitPrice: '129.00',
-    discountAmount: '30.00',
-    grossAmount: '387.00',
-    netAmount: '357.00',
-  },
-  {
-    orderNo: 'ORD-20260524-0008',
-    sku: 'RI-HEAD-007',
-    quantity: 1,
-    unitPrice: '699.00',
-    discountAmount: '0.00',
-    grossAmount: '699.00',
-    netAmount: '699.00',
-  },
-  {
-    orderNo: 'ORD-20260523-0009',
-    sku: 'RI-DRIP-001',
-    quantity: 2,
-    unitPrice: '299.00',
-    discountAmount: '58.00',
-    grossAmount: '598.00',
-    netAmount: '540.00',
-  },
-  {
-    orderNo: 'ORD-20260523-0009',
-    sku: 'RI-SHOE-008',
-    quantity: 1,
-    unitPrice: '529.00',
-    discountAmount: '70.00',
-    grossAmount: '529.00',
-    netAmount: '459.00',
-  },
-  {
-    orderNo: 'ORD-20260523-0009',
-    sku: 'RI-MUG-005',
-    quantity: 3,
-    unitPrice: '129.00',
-    discountAmount: '28.00',
-    grossAmount: '387.00',
-    netAmount: '359.00',
-  },
-  {
-    orderNo: 'ORD-20260522-0010',
-    sku: 'RI-SHOE-008',
-    quantity: 1,
-    unitPrice: '529.00',
-    discountAmount: '0.00',
-    grossAmount: '529.00',
-    netAmount: '0.00',
-  },
-  {
-    orderNo: 'ORD-20260521-0011',
-    sku: 'RI-SHOE-008',
-    quantity: 2,
-    unitPrice: '529.00',
-    discountAmount: '100.00',
-    grossAmount: '1058.00',
-    netAmount: '958.00',
-  },
-  {
-    orderNo: 'ORD-20260520-0012',
-    sku: 'RI-DRIP-001',
-    quantity: 1,
-    unitPrice: '299.00',
-    discountAmount: '15.00',
-    grossAmount: '299.00',
-    netAmount: '284.00',
-  },
-  {
-    orderNo: 'ORD-20260520-0012',
-    sku: 'RI-MUG-005',
-    quantity: 2,
-    unitPrice: '129.00',
-    discountAmount: '15.00',
-    grossAmount: '258.00',
-    netAmount: '243.00',
-  },
-];
+const productBySku = new Map(products.map((product) => [product.sku, product]));
+const platforms = ['tmall', 'jd', 'douyin'];
+const regions = ['Shanghai', 'Beijing', 'Guangdong', 'Zhejiang', 'Sichuan'];
+const revenueStatuses = ['COMPLETED', 'PAID', 'SHIPPED'];
+const orders = [];
+const orderItems = [];
+const refunds = [];
 
-const refunds = [
-  {
-    refundNo: 'REF-20260528-0001',
-    orderNo: 'ORD-20260528-0001',
-    sku: 'RI-LAMP-002',
-    reason: 'QUALITY_ISSUE',
-    status: 'COMPLETED',
-    requestedAt: new Date('2026-05-28T05:00:00.000Z'),
-    completedAt: new Date('2026-05-28T06:15:00.000Z'),
-    amount: '419.00',
-    note: 'Lamp shade damaged during shipping. Full refund issued.',
-  },
-  {
-    refundNo: 'REF-20260528-0002',
-    orderNo: 'ORD-20260528-0002',
-    sku: 'RI-MAT-004',
-    reason: 'CUSTOMER_RETURN',
-    status: 'REQUESTED',
-    requestedAt: new Date('2026-05-28T07:30:00.000Z'),
-    completedAt: null,
-    amount: '169.00',
-    note: 'Customer requested a return. Pending review.',
-  },
-  {
-    refundNo: 'REF-20260525-0003',
-    orderNo: 'ORD-20260525-0006',
-    sku: 'RI-HEAD-007',
-    reason: 'PRICE_ADJUSTMENT',
-    status: 'COMPLETED',
-    requestedAt: new Date('2026-05-25T07:00:00.000Z'),
-    completedAt: new Date('2026-05-25T08:20:00.000Z'),
-    amount: '50.00',
-    note: 'Price adjustment refund completed.',
-  },
-  {
-    refundNo: 'REF-20260523-0004',
-    orderNo: 'ORD-20260523-0009',
-    sku: 'RI-DRIP-001',
-    reason: 'LOGISTICS_ISSUE',
-    status: 'APPROVED',
-    requestedAt: new Date('2026-05-24T02:30:00.000Z'),
-    completedAt: null,
-    amount: '120.00',
-    note: 'Delivery delay compensation approved.',
-  },
-  {
-    refundNo: 'REF-20260521-0005',
-    orderNo: 'ORD-20260521-0011',
-    sku: 'RI-SHOE-008',
-    reason: 'OTHER',
-    status: 'REJECTED',
-    requestedAt: new Date('2026-05-22T01:10:00.000Z'),
-    completedAt: null,
-    amount: '100.00',
-    note: 'Refund request rejected after review.',
-  },
-];
+function addDays(date, days) {
+  const nextDate = new Date(date);
+  nextDate.setUTCDate(nextDate.getUTCDate() + days);
+  return nextDate;
+}
+
+function money(value) {
+  return value.toFixed(2);
+}
+
+function getProduct(sku) {
+  const product = productBySku.get(sku);
+
+  if (!product) {
+    throw new Error(`Missing product fixture ${sku}`);
+  }
+
+  return product;
+}
+
+function createOrder({
+  dayOffset,
+  sequence,
+  platform,
+  status,
+  region,
+  lines,
+  discount = 0,
+}) {
+  const placedAt = addDays(baseDate, dayOffset);
+  placedAt.setUTCHours(2 + (sequence % 14), (sequence * 7) % 60, 0, 0);
+
+  const orderNo = `ORD-202605${String(28 + dayOffset).padStart(2, '0')}-${String(sequence).padStart(4, '0')}`;
+  const grossAmount = lines.reduce((sum, line) => {
+    const product = getProduct(line.sku);
+    return sum + Number(product.price) * line.quantity;
+  }, 0);
+  const netAmount = revenueStatuses.includes(status)
+    ? Math.max(grossAmount - discount, 0)
+    : 0;
+
+  orders.push({
+    orderNo,
+    platform,
+    placedAt,
+    status,
+    grossAmount: money(grossAmount),
+    discountAmount: money(discount),
+    netAmount: money(netAmount),
+    customerRegion: region,
+  });
+
+  const grossDiscountRatio = grossAmount > 0 ? discount / grossAmount : 0;
+
+  for (const line of lines) {
+    const product = getProduct(line.sku);
+    const lineGrossAmount = Number(product.price) * line.quantity;
+    const lineDiscountAmount = revenueStatuses.includes(status)
+      ? lineGrossAmount * grossDiscountRatio
+      : 0;
+    const lineNetAmount = revenueStatuses.includes(status)
+      ? lineGrossAmount - lineDiscountAmount
+      : 0;
+
+    orderItems.push({
+      orderNo,
+      sku: line.sku,
+      quantity: line.quantity,
+      unitPrice: product.price,
+      discountAmount: money(lineDiscountAmount),
+      grossAmount: money(lineGrossAmount),
+      netAmount: money(lineNetAmount),
+    });
+  }
+
+  return orderNo;
+}
+
+function addRefund({
+  orderNo,
+  sku,
+  index,
+  reason,
+  status,
+  requestedOffsetHours,
+  completedOffsetHours,
+  amount,
+  note,
+}) {
+  const order = orders.find((item) => item.orderNo === orderNo);
+
+  if (!order) {
+    throw new Error(`Missing order fixture ${orderNo}`);
+  }
+
+  const requestedAt = new Date(order.placedAt);
+  requestedAt.setUTCHours(requestedAt.getUTCHours() + requestedOffsetHours);
+
+  const completedAt = completedOffsetHours == null ? null : new Date(order.placedAt);
+  if (completedAt) {
+    completedAt.setUTCHours(completedAt.getUTCHours() + completedOffsetHours);
+  }
+
+  refunds.push({
+    refundNo: `REF-${orderNo.slice(4)}-${String(index).padStart(2, '0')}`,
+    orderNo,
+    sku,
+    reason,
+    status,
+    requestedAt,
+    completedAt,
+    amount: money(amount),
+    note,
+  });
+}
+
+for (let day = -29; day <= 0; day += 1) {
+  const dayIndex = day + 29;
+  const firstSku = products[dayIndex % products.length].sku;
+  const secondSku = products[(dayIndex + 3) % products.length].sku;
+  const thirdSku = products[(dayIndex + 6) % products.length].sku;
+  const platform = platforms[dayIndex % platforms.length];
+  const secondaryPlatform = platforms[(dayIndex + 1) % platforms.length];
+  const status = revenueStatuses[dayIndex % revenueStatuses.length];
+  const dailyDiscount = (dayIndex % 5) * 18;
+
+  const mainOrderNo = createOrder({
+    dayOffset: day,
+    sequence: dayIndex + 1,
+    platform,
+    status,
+    region: regions[dayIndex % regions.length],
+    discount: dailyDiscount,
+    lines: [
+      { sku: firstSku, quantity: 1 + (dayIndex % 3) },
+      { sku: secondSku, quantity: 1 },
+    ],
+  });
+
+  if (dayIndex % 2 === 0) {
+    createOrder({
+      dayOffset: day,
+      sequence: 100 + dayIndex,
+      platform: secondaryPlatform,
+      status: dayIndex % 6 === 0 ? 'CANCELLED' : revenueStatuses[(dayIndex + 1) % 3],
+      region: regions[(dayIndex + 2) % regions.length],
+      discount: dayIndex % 4 === 0 ? 35 : 0,
+      lines: [{ sku: thirdSku, quantity: 1 + (dayIndex % 2) }],
+    });
+  }
+
+  if (dayIndex % 9 === 0) {
+    createOrder({
+      dayOffset: day,
+      sequence: 200 + dayIndex,
+      platform: platforms[(dayIndex + 2) % platforms.length],
+      status: 'PENDING_PAYMENT',
+      region: regions[(dayIndex + 3) % regions.length],
+      lines: [{ sku: secondSku, quantity: 1 }],
+    });
+  }
+
+  if (dayIndex % 7 === 0) {
+    addRefund({
+      orderNo: mainOrderNo,
+      sku: firstSku,
+      index: dayIndex,
+      reason: dayIndex % 14 === 0 ? 'QUALITY_ISSUE' : 'PRICE_ADJUSTMENT',
+      status: 'COMPLETED',
+      requestedOffsetHours: 8,
+      completedOffsetHours: dayIndex % 14 === 0 ? 32 : 10,
+      amount: 45 + (dayIndex % 4) * 35,
+      note: 'Completed refund fixture for metric validation.',
+    });
+  }
+
+  if (dayIndex % 11 === 0) {
+    addRefund({
+      orderNo: mainOrderNo,
+      sku: secondSku,
+      index: 400 + dayIndex,
+      reason: 'CUSTOMER_RETURN',
+      status: dayIndex % 22 === 0 ? 'APPROVED' : 'REQUESTED',
+      requestedOffsetHours: 14,
+      completedOffsetHours: null,
+      amount: 90 + (dayIndex % 5) * 20,
+      note: 'Pending refund fixture for workflow filtering.',
+    });
+  }
+
+  if (dayIndex % 13 === 0) {
+    addRefund({
+      orderNo: mainOrderNo,
+      sku: firstSku,
+      index: 700 + dayIndex,
+      reason: 'OTHER',
+      status: 'REJECTED',
+      requestedOffsetHours: 18,
+      completedOffsetHours: null,
+      amount: 60,
+      note: 'Rejected refund fixture for status filters.',
+    });
+  }
+}
 
 async function main() {
   await prisma.$transaction([
