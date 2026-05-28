@@ -68,7 +68,8 @@ input {
 }
 
 .period-tabs,
-.sort-tabs {
+.sort-tabs,
+.view-tabs {
   display: inline-flex;
   gap: 4px;
   padding: 4px;
@@ -78,7 +79,8 @@ input {
 }
 
 .period-tabs button,
-.sort-tabs button {
+.sort-tabs button,
+.view-tabs button {
   min-width: 72px;
   border: 0;
   border-radius: 6px;
@@ -89,7 +91,8 @@ input {
 }
 
 .period-tabs button.active,
-.sort-tabs button.active {
+.sort-tabs button.active,
+.view-tabs button.active {
   background: #24453f;
   color: #ffffff;
 }
@@ -100,6 +103,14 @@ input {
   max-width: 1180px;
   margin: 0 auto;
   padding: 24px 32px 40px;
+}
+
+.view-tabs {
+  justify-self: start;
+}
+
+.view-tabs button {
+  min-width: 104px;
 }
 
 .status-line {
@@ -332,6 +343,10 @@ input {
   grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
 }
 
+.detail-panel {
+  min-height: 420px;
+}
+
 .order-list,
 .refund-list {
   display: grid;
@@ -471,7 +486,13 @@ input {
     width: 100%;
   }
 
-  .period-tabs button {
+  .period-tabs button,
+  .view-tabs button {
     flex: 1;
+  }
+
+  .view-tabs {
+    justify-self: stretch;
+    width: 100%;
   }
 }

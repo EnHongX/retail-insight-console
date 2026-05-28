@@ -17,6 +17,11 @@ import {
   parseDashboardFilters,
   serializeDashboardFilters,
 } from './dashboard-state';
+import {
+  type DashboardView,
+  dashboardViews,
+  getViewAfterTrendSelection,
+} from './dashboard-view';
 
 const periods: Array<{ value: DashboardPeriod; label: string }> = [
   { value: 'today', label: '今日' },
@@ -33,6 +38,7 @@ export function App() {
   const [filters, setFilters] = useState<DashboardFilters>(() =>
     parseDashboardFilters(window.location.search),
   );
+  const [activeView, setActiveView] = useState<DashboardView>('overview');
   const [data, setData] = useState<DashboardData | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
@@ -146,6 +152,14 @@ export function App() {
     }));
   }
 
+  function selectTrendDate(date: string) {
+    setSelectedDate((current) => {
+      const nextDate = current === date ? null : date;
+      setActiveView((view) => getViewAfterTrendSelection(view, nextDate));
+      return nextDate;
+    });
+  }
+
   async function changeRefundStatus(refundId: string, status: string) {
     setDetailError(null);
 
@@ -191,6 +205,19 @@ export function App() {
       </header>
 
       <main className="dashboard">
+        <nav className="view-tabs" aria-label="功能导航">
+          {dashboardViews.map((view) => (
+            <button
+              className={activeView === view.value ? 'active' : ''}
+              key={view.value}
+              onClick={() => setActiveView(view.value)}
+              type="button"
+            >
+              {view.label}
+            </button>
+          ))}
+        </nav>
+
         <section className="filter-panel" aria-label="筛选条件">
           <label>
             平台
@@ -275,139 +302,139 @@ export function App() {
           />
         </section>
 
-        <section className="content-grid">
-          <div className="panel">
-            <div className="panel-header">
-              <h2>销售趋势</h2>
-              <span>柱：GMV / 线：订单数</span>
-            </div>
-            {data && data.salesTrend.points.length > 0 ? (
-              <div className="combo-chart">
-                <svg className="line-chart" preserveAspectRatio="none" viewBox="0 0 100 100">
-                  <polyline
-                    fill="none"
-                    points={data.salesTrend.points
-                      .map((point, index, points) => {
-                        const x =
-                          points.length === 1
-                            ? 50
-                            : (index / (points.length - 1)) * 100;
-                        const y =
-                          maxOrders === 0 ? 100 : 100 - (point.orderCount / maxOrders) * 92;
-                        return `${x},${y}`;
-                      })
-                      .join(' ')}
-                    stroke="#b45309"
-                    strokeWidth="2.5"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                </svg>
-                <div className="trend-chart">
-                  {data.salesTrend.points.map((point) => (
+        {activeView === 'overview' ? (
+          <>
+            <section className="content-grid">
+              <div className="panel">
+                <div className="panel-header">
+                  <h2>销售趋势</h2>
+                  <span>柱：GMV / 线：订单数</span>
+                </div>
+                {data && data.salesTrend.points.length > 0 ? (
+                  <div className="combo-chart">
+                    <svg className="line-chart" preserveAspectRatio="none" viewBox="0 0 100 100">
+                      <polyline
+                        fill="none"
+                        points={data.salesTrend.points
+                          .map((point, index, points) => {
+                            const x =
+                              points.length === 1
+                                ? 50
+                                : (index / (points.length - 1)) * 100;
+                            const y =
+                              maxOrders === 0 ? 100 : 100 - (point.orderCount / maxOrders) * 92;
+                            return `${x},${y}`;
+                          })
+                          .join(' ')}
+                        stroke="#b45309"
+                        strokeWidth="2.5"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </svg>
+                    <div className="trend-chart">
+                      {data.salesTrend.points.map((point) => (
+                        <button
+                          className={`trend-bar-wrap${selectedDate === point.date ? ' selected' : ''}`}
+                          key={point.date}
+                          onClick={() => selectTrendDate(point.date)}
+                          type="button"
+                        >
+                          <div
+                            aria-label={`${point.date} GMV ${point.gmv}`}
+                            className="trend-bar"
+                            style={{
+                              height: `${getTrendHeight(point.gmv, maxGmv)}%`,
+                            }}
+                          />
+                          <div className="trend-date">{point.date.slice(5)}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="empty-state">暂无趋势数据</div>
+                )}
+              </div>
+
+              <div className="panel">
+                <div className="panel-header">
+                  <h2>退款概览</h2>
+                  <span>完成退款按 completedAt</span>
+                </div>
+                <div className="refund-grid">
+                  <div className="refund-metric">
+                    <span>已完成金额</span>
+                    <strong>
+                      {formatCurrency(data?.refundSummary.completedAmount ?? 0)}
+                    </strong>
+                  </div>
+                  <div className="refund-metric">
+                    <span>已完成单数</span>
+                    <strong>{data?.refundSummary.completedCount ?? 0}</strong>
+                  </div>
+                  <div className="refund-metric">
+                    <span>待处理单数</span>
+                    <strong>{data?.refundSummary.pendingCount ?? 0}</strong>
+                  </div>
+                  <div className="refund-metric">
+                    <span>已拒绝单数</span>
+                    <strong>{data?.refundSummary.rejectedCount ?? 0}</strong>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="panel">
+              <div className="panel-header">
+                <h2>商品销售排行</h2>
+                <div className="sort-tabs" aria-label="商品排行排序">
+                  {productSorts.map((item) => (
                     <button
-                      className={`trend-bar-wrap${selectedDate === point.date ? ' selected' : ''}`}
-                      key={point.date}
-                      onClick={() =>
-                        setSelectedDate((current) =>
-                          current === point.date ? null : point.date,
-                        )
-                      }
+                      className={filters.sort === item.value ? 'active' : ''}
+                      key={item.value}
+                      onClick={() => updateFilters({ sort: item.value })}
                       type="button"
                     >
-                      <div
-                        aria-label={`${point.date} GMV ${point.gmv}`}
-                        className="trend-bar"
-                        style={{
-                          height: `${getTrendHeight(point.gmv, maxGmv)}%`,
-                        }}
-                      />
-                      <div className="trend-date">{point.date.slice(5)}</div>
+                      {item.label}
                     </button>
                   ))}
                 </div>
               </div>
-            ) : (
-              <div className="empty-state">暂无趋势数据</div>
-            )}
-          </div>
+              {data && data.topProducts.products.length > 0 ? (
+                <table className="product-table">
+                  <thead>
+                    <tr>
+                      <th>商品</th>
+                      <th>分类</th>
+                      <th className="numeric">销量</th>
+                      <th className="numeric">销售额</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.topProducts.products.map((product) => (
+                      <tr key={product.productId}>
+                        <td>
+                          <div className="product-name">
+                            <strong>{product.name}</strong>
+                            <span>{product.sku}</span>
+                          </div>
+                        </td>
+                        <td>{product.category}</td>
+                        <td className="numeric">{product.quantity}</td>
+                        <td className="numeric">{formatCurrency(product.netSales)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="empty-state">暂无商品排行数据</div>
+              )}
+            </section>
+          </>
+        ) : null}
 
-          <div className="panel">
-            <div className="panel-header">
-              <h2>退款概览</h2>
-              <span>完成退款按 completedAt</span>
-            </div>
-            <div className="refund-grid">
-              <div className="refund-metric">
-                <span>已完成金额</span>
-                <strong>
-                  {formatCurrency(data?.refundSummary.completedAmount ?? 0)}
-                </strong>
-              </div>
-              <div className="refund-metric">
-                <span>已完成单数</span>
-                <strong>{data?.refundSummary.completedCount ?? 0}</strong>
-              </div>
-              <div className="refund-metric">
-                <span>待处理单数</span>
-                <strong>{data?.refundSummary.pendingCount ?? 0}</strong>
-              </div>
-              <div className="refund-metric">
-                <span>已拒绝单数</span>
-                <strong>{data?.refundSummary.rejectedCount ?? 0}</strong>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="panel">
-          <div className="panel-header">
-            <h2>商品销售排行</h2>
-            <div className="sort-tabs" aria-label="商品排行排序">
-              {productSorts.map((item) => (
-                <button
-                  className={filters.sort === item.value ? 'active' : ''}
-                  key={item.value}
-                  onClick={() => updateFilters({ sort: item.value })}
-                  type="button"
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          {data && data.topProducts.products.length > 0 ? (
-            <table className="product-table">
-              <thead>
-                <tr>
-                  <th>商品</th>
-                  <th>分类</th>
-                  <th className="numeric">销量</th>
-                  <th className="numeric">销售额</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.topProducts.products.map((product) => (
-                  <tr key={product.productId}>
-                    <td>
-                      <div className="product-name">
-                        <strong>{product.name}</strong>
-                        <span>{product.sku}</span>
-                      </div>
-                    </td>
-                    <td>{product.category}</td>
-                    <td className="numeric">{product.quantity}</td>
-                    <td className="numeric">{formatCurrency(product.netSales)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className="empty-state">暂无商品排行数据</div>
-          )}
-        </section>
-
-        <section className="content-grid detail-grid">
-          <div className="panel">
+        {activeView === 'orders' ? (
+          <section className="panel detail-panel">
             <div className="panel-header">
               <h2>订单明细</h2>
               <span>{selectedDate ? `${selectedDate} 单日` : '当前周期'}</span>
@@ -470,9 +497,11 @@ export function App() {
             ) : (
               <div className="empty-state">暂无订单明细</div>
             )}
-          </div>
+          </section>
+        ) : null}
 
-          <div className="panel">
+        {activeView === 'refunds' ? (
+          <section className="panel detail-panel">
             <div className="panel-header">
               <h2>退款处理工作台</h2>
               <span>状态机审核</span>
@@ -530,8 +559,8 @@ export function App() {
             ) : (
               <div className="empty-state">暂无退款单</div>
             )}
-          </div>
-        </section>
+          </section>
+        ) : null}
       </main>
     </div>
   );

@@ -54,6 +54,8 @@ API 健康检查地址为 `http://localhost:7102/health`。由于后端在启动
 
 第一版运营指标口径见 `docs/product/metrics.md`。当前锁定的最小指标包括 GMV、订单数、退款率、客单价和商品销售排行。
 
+AI 模型 Bug 修复评测设计见 `docs/bug-benchmark.md`。
+
 ## 数据模型
 
 当前 Prisma 模型包含：
