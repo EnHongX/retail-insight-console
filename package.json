@@ -9,9 +9,15 @@
   "scripts": {
     "dev:web": "pnpm --filter @retail-insight/web dev",
     "dev:api": "pnpm --filter @retail-insight/api start:dev",
+    "test": "vitest run",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
+    "validate:domain": "node scripts/validate-retail-domain.mjs",
     "db:generate": "pnpm --filter @retail-insight/api prisma:generate",
-    "db:validate": "pnpm --filter @retail-insight/api prisma:validate"
+    "db:validate": "pnpm --filter @retail-insight/api prisma:validate",
+    "db:seed": "pnpm --filter @retail-insight/api prisma:seed"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.7"
   }
 }
