@@ -1,0 +1,298 @@
+:root {
+  color: #1f2933;
+  background: #f4f7f6;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, #e8f0ee 0, rgba(232, 240, 238, 0) 280px),
+    #f4f7f6;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 32px 16px;
+  border-bottom: 1px solid #d8e0dd;
+}
+
+.brand-block {
+  display: grid;
+  gap: 4px;
+}
+
+.brand-block h1 {
+  margin: 0;
+  color: #16211f;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.brand-block p {
+  margin: 0;
+  color: #63716d;
+  font-size: 14px;
+}
+
+.period-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #cbd6d2;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.period-tabs button {
+  min-width: 72px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #44524f;
+  cursor: pointer;
+  padding: 8px 12px;
+}
+
+.period-tabs button.active {
+  background: #24453f;
+  color: #ffffff;
+}
+
+.dashboard {
+  display: grid;
+  gap: 20px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 32px 40px;
+}
+
+.status-line {
+  min-height: 20px;
+  color: #63716d;
+  font-size: 14px;
+}
+
+.status-line.error {
+  color: #9a3412;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.kpi-card,
+.panel {
+  border: 1px solid #d8e0dd;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(31, 41, 51, 0.06);
+}
+
+.kpi-card {
+  display: grid;
+  gap: 8px;
+  min-height: 128px;
+  padding: 18px;
+}
+
+.kpi-label {
+  color: #63716d;
+  font-size: 13px;
+}
+
+.kpi-value {
+  color: #16211f;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.kpi-note {
+  align-self: end;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+  gap: 20px;
+}
+
+.panel {
+  min-width: 0;
+  padding: 18px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.panel-header h2 {
+  margin: 0;
+  color: #16211f;
+  font-size: 17px;
+}
+
+.panel-header span {
+  color: #63716d;
+  font-size: 13px;
+}
+
+.trend-chart {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(42px, 1fr);
+  align-items: end;
+  gap: 12px;
+  min-height: 260px;
+  padding-top: 12px;
+  overflow-x: auto;
+}
+
+.trend-bar-wrap {
+  display: grid;
+  align-items: end;
+  gap: 8px;
+  min-width: 42px;
+  height: 240px;
+}
+
+.trend-bar {
+  width: 100%;
+  min-height: 0;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, #2f6f63, #84a98c);
+}
+
+.trend-date {
+  color: #63716d;
+  font-size: 12px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.product-table th,
+.product-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #e3ebe8;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.product-table th {
+  color: #63716d;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.product-name {
+  display: grid;
+  gap: 2px;
+}
+
+.product-name strong {
+  color: #1f2933;
+  font-size: 14px;
+}
+
+.product-name span {
+  color: #71817c;
+  font-size: 12px;
+}
+
+.numeric {
+  text-align: right !important;
+}
+
+.refund-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.refund-metric {
+  display: grid;
+  gap: 6px;
+  min-height: 88px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #f6f8f7;
+}
+
+.refund-metric span {
+  color: #63716d;
+  font-size: 12px;
+}
+
+.refund-metric strong {
+  color: #16211f;
+  font-size: 20px;
+}
+
+.empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  color: #63716d;
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .dashboard {
+    padding: 20px;
+  }
+
+  .kpi-grid,
+  .content-grid,
+  .refund-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .period-tabs {
+    width: 100%;
+  }
+
+  .period-tabs button {
+    flex: 1;
+  }
+}
