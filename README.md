@@ -1,6 +1,6 @@
 # retail-insight-console
 
-电商运营数据后台工程骨架。当前阶段包含前端、后端、PostgreSQL 连接基础设施，以及第一版商品、订单、订单明细、退款数据模型。
+电商运营数据后台 MVP。当前阶段已完成前端看板、后端 Dashboard API、PostgreSQL/Prisma 数据模型、订单明细 Drilldown 和退款处理工作台的最小闭环。
 
 ## 技术栈
 
@@ -14,7 +14,7 @@
 ```text
 apps/
   api/    NestJS 服务与 Prisma 配置
-  web/    React 空应用入口
+  web/    React 看板应用
 ```
 
 ## 本地启动
@@ -53,6 +53,8 @@ API 健康检查地址为 `http://localhost:7102/health`。由于后端在启动
 ## 业务口径
 
 第一版运营指标口径见 `docs/product/metrics.md`。当前锁定的最小指标包括 GMV、订单数、退款率、客单价和商品销售排行。
+
+项目开发进度和下一步计划见 `docs/project-status.md`。
 
 AI 模型 Bug 修复评测设计见 `docs/bug-benchmark.md`。
 
@@ -95,7 +97,7 @@ AI 模型 Bug 修复评测设计见 `docs/bug-benchmark.md`。
 - 订单明细 Drilldown 继承 Dashboard 筛选条件，并支持点击趋势日期后按单日查询。
 - 退款处理工作台使用状态机：`REQUESTED -> APPROVED/REJECTED`，`APPROVED -> COMPLETED/REJECTED`，终态不可继续流转。
 
-Seed 数据覆盖近 30 天，包含多平台、多分类、取消订单、待支付订单、跨日完成退款、待处理退款和拒绝退款，便于复现筛选和边界场景。
+Seed 数据覆盖近 60 天，并确保今天和近 7 天有可展示数据；样例包含多平台、多分类、多地域、取消订单、待支付订单、跨日完成退款、待处理退款和拒绝退款，便于复现筛选和边界场景。
 
 ## 校验
 
@@ -105,5 +107,7 @@ pnpm build
 pnpm test
 pnpm validate:domain
 ```
+
+当前 `pnpm test` 显式使用 Vitest `forks` pool。2026-06-22 在 Node.js `v24.13.0` 环境下，默认 pool 曾出现启动后无用例输出的卡住现象；`forks` pool 已验证可稳定跑完现有单测。
 
 `.gitignore` 已屏蔽 `node_modules/`、所有 `.env` 及常见构建输出；仅 `.env.example` 会被提交作为配置模板。
