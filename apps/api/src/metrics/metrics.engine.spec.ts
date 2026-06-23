@@ -1,12 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  buildRefundSummary,
-  buildSalesTrend,
-  buildSummary,
-  buildTopProducts,
-} from './dashboard.metrics';
-
-const validStatuses = ['PAID', 'SHIPPED', 'COMPLETED'] as const;
+import { MetricsEngine, validRevenueOrderStatuses } from './metrics.engine';
 
 const orders = [
   {
@@ -79,6 +72,16 @@ const orderItems = [
     quantity: 1,
     netAmount: '389.00',
   },
+  {
+    productId: 'product-5',
+    productName: 'Pending Payment Item',
+    sku: 'RI-PENDING-005',
+    category: 'Bags',
+    platform: 'jd',
+    orderStatus: 'PENDING_PAYMENT',
+    quantity: 8,
+    netAmount: '888.00',
+  },
 ];
 
 const refunds = [
@@ -99,9 +102,17 @@ const refunds = [
   },
 ];
 
-describe('dashboard metrics', () => {
-  it('summarizes valid orders and completed refunds', () => {
-    expect(buildSummary({ orders, refunds, validStatuses })).toEqual({
+describe('MetricsEngine', () => {
+  const engine = new MetricsEngine();
+
+  it('calculates dashboard summary without changing metric semantics', () => {
+    expect(
+      engine.buildSummary({
+        orders,
+        refunds,
+        validStatuses: validRevenueOrderStatuses,
+      }),
+    ).toEqual({
       gmv: 1316,
       orderCount: 2,
       refundAmount: 469,
@@ -110,17 +121,11 @@ describe('dashboard metrics', () => {
     });
   });
 
-  it('builds daily sales trend from valid orders only', () => {
-    expect(buildSalesTrend({ orders, validStatuses })).toEqual([
-      { date: '2026-05-28', gmv: 1316, orderCount: 2, netSales: 1236 },
-    ]);
-  });
-
-  it('fills missing trend days when a date window is provided', () => {
+  it('builds complete daily trend points for the requested date window', () => {
     expect(
-      buildSalesTrend({
+      engine.buildSalesTrend({
         orders,
-        validStatuses,
+        validStatuses: validRevenueOrderStatuses,
         startDate: new Date('2026-05-26T00:00:00.000Z'),
         endDate: new Date('2026-05-29T00:00:00.000Z'),
       }),
@@ -131,8 +136,23 @@ describe('dashboard metrics', () => {
     ]);
   });
 
-  it('ranks products by quantity and excludes cancelled orders', () => {
-    expect(buildTopProducts({ orderItems, validStatuses, limit: 2 })).toEqual([
+  it('builds daily sales trend from valid orders only', () => {
+    expect(
+      engine.buildSalesTrend({
+        orders,
+        validStatuses: validRevenueOrderStatuses,
+      }),
+    ).toEqual([{ date: '2026-05-28', gmv: 1316, orderCount: 2, netSales: 1236 }]);
+  });
+
+  it('ranks products from revenue orders only', () => {
+    expect(
+      engine.buildTopProducts({
+        orderItems,
+        validStatuses: validRevenueOrderStatuses,
+        limit: 2,
+      }),
+    ).toEqual([
       {
         productId: 'product-4',
         name: 'Yoga Training Mat',
@@ -154,9 +174,9 @@ describe('dashboard metrics', () => {
 
   it('can rank products by net sales for table sorting', () => {
     expect(
-      buildTopProducts({
+      engine.buildTopProducts({
         orderItems,
-        validStatuses,
+        validStatuses: validRevenueOrderStatuses,
         limit: 1,
         sortBy: 'netSales',
       }),
@@ -173,7 +193,7 @@ describe('dashboard metrics', () => {
   });
 
   it('summarizes refund workflow states', () => {
-    expect(buildRefundSummary({ refunds, gmv: 1316 })).toEqual({
+    expect(engine.buildRefundSummary({ refunds, gmv: 1316 })).toEqual({
       completedAmount: 469,
       completedCount: 2,
       pendingCount: 1,
@@ -182,9 +202,9 @@ describe('dashboard metrics', () => {
     });
   });
 
-  it('filters refunds by completed time and status for reporting', () => {
+  it('summarizes refunds using completedAt for completed refunds', () => {
     expect(
-      buildRefundSummary({
+      engine.buildRefundSummary({
         refunds,
         gmv: 1316,
         startDate: new Date('2026-05-28T00:00:00.000Z'),

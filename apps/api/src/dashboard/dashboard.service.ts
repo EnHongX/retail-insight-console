@@ -2,12 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { RefundStatus } from '@prisma/client';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import {
-  buildRefundSummary,
-  buildSalesTrend,
-  buildSummary,
-  buildTopProducts,
+  MetricsEngine,
   validRevenueOrderStatuses,
-} from './dashboard.metrics';
+} from '../metrics/metrics.engine';
 import {
   assertRefundTransition,
   normalizeRefundStatus,
@@ -148,7 +145,10 @@ function orderWhere(filters: DashboardFilters, window: DateWindow) {
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly metricsEngine: MetricsEngine,
+  ) {}
 
   async getFilterOptions() {
     const [platforms, categories] = await Promise.all([
@@ -404,7 +404,7 @@ export class DashboardService {
 
     return {
       period,
-      ...buildSummary({
+      ...this.metricsEngine.buildSummary({
         orders,
         refunds,
         validStatuses: validRevenueOrderStatuses,
@@ -457,7 +457,7 @@ export class DashboardService {
 
     return {
       period,
-      points: buildSalesTrend({
+      points: this.metricsEngine.buildSalesTrend({
         orders,
         validStatuses: validRevenueOrderStatuses,
         startDate: start,
@@ -515,7 +515,7 @@ export class DashboardService {
 
     return {
       period,
-      products: buildTopProducts({
+      products: this.metricsEngine.buildTopProducts({
         limit,
         sortBy,
         validStatuses: validRevenueOrderStatuses,
@@ -605,7 +605,7 @@ export class DashboardService {
         },
       }),
     ]);
-    const summary = buildSummary({
+    const summary = this.metricsEngine.buildSummary({
       orders,
       refunds,
       validStatuses: validRevenueOrderStatuses,
@@ -613,7 +613,7 @@ export class DashboardService {
 
     return {
       period,
-      ...buildRefundSummary({
+      ...this.metricsEngine.buildRefundSummary({
         refunds,
         gmv: summary.gmv,
         startDate: start,
