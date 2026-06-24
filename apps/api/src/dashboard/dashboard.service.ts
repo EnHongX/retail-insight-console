@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { RefundStatus } from '@prisma/client';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import {
@@ -146,7 +146,9 @@ function orderWhere(filters: DashboardFilters, window: DateWindow) {
 @Injectable()
 export class DashboardService {
   constructor(
+    @Inject(PrismaService)
     private readonly prisma: PrismaService,
+    @Inject(MetricsEngine)
     private readonly metricsEngine: MetricsEngine,
   ) {}
 

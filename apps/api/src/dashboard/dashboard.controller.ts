@@ -1,9 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Patch, Query } from '@nestjs/common';
 import { type DashboardFilters, DashboardService } from './dashboard.service';
 
 @Controller()
 export class DashboardController {
-  constructor(private readonly dashboardService: DashboardService) {}
+  constructor(
+    @Inject(DashboardService)
+    private readonly dashboardService: DashboardService,
+  ) {}
 
   @Get('dashboard/filters')
   getFilters() {

@@ -10,6 +10,7 @@
     "dev:web": "pnpm --filter @retail-insight/web dev",
     "dev:api": "pnpm --filter @retail-insight/api start:dev",
     "test": "vitest run --pool forks",
+    "test:integration:api": "node scripts/run-api-integration.mjs",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "validate:domain": "node scripts/validate-retail-domain.mjs",
